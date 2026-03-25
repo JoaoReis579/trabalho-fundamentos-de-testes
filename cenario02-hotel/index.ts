@@ -48,22 +48,67 @@ const quartos: IQuarto[] = [
 // ==================== FUNÇÃO A IMPLEMENTAR ====================
 
 function calcularReserva(reserva: IReserva): IResultadoReserva {
-    // TODO: Implementar a lógica seguindo as regras de negócio
-    //
-    // Passos sugeridos:
-    // 1. Buscar o quarto pelo quartoId
-    // 2. Validar: quarto existe, noites entre 1-30, hóspedes dentro da capacidade
-    // 3. Calcular valor da diária base (precoNoite do quarto)
-    // 4. Se alta temporada (mes 12, 1 ou 2): diária *= 1.30
-    // 5. Se 3+ noites: desconto = 10% sobre (diária × noites)
-    // 6. Se café da manhã: adicionar R$ 30 por noite
-    // 7. Calcular valorTotal: (diária × noites) - desconto + (café × noites)
+    // Buscar o quarto
+    const quarto = quartos.find(q => q.id === reserva.quartoId)
+    if (!quarto) {
+        return {
+            valorDiaria: 0,
+            valorTotal: 0,
+            desconto: 0,
+            ehValida: false
+        }
+    }
+
+    // Validar noites
+    if (reserva.noites < 1 || reserva.noites > 30) {
+        return {
+            valorDiaria: 0,
+            valorTotal: 0,
+            desconto: 0,
+            ehValida: false
+        }
+    }
+
+    // Validar hospedes
+    if (reserva.hospedes > quarto.capacidade) {
+        return {
+            valorDiaria: 0,
+            valorTotal: 0,
+            desconto: 0,
+            ehValida: false
+        }
+    }
+
+    // Calcular valor diária
+    let valorDiaria = quarto.precoNoite
+    const altaTemporada = [12, 1, 2].includes(reserva.mes)
+    if (altaTemporada) {
+        valorDiaria *= 1.3
+    }
+
+    // Subtotal diarias
+    const subtotalDiarias = valorDiaria * reserva.noites
+
+    // Desconto
+    let desconto = 0
+    if (reserva.noites >= 3) {
+        desconto = subtotalDiarias * 0.1
+    }
+
+    // Café
+    let valorCafe = 0
+    if (reserva.cafeDaManha) {
+        valorCafe = 30 * reserva.noites
+    }
+
+    // Valor total
+    const valorTotal = subtotalDiarias - desconto + valorCafe
 
     return {
-        valorDiaria: 0,
-        valorTotal: 0,
-        desconto: 0,
-        ehValida: false
+        valorDiaria: Math.round(valorDiaria * 100) / 100,
+        valorTotal: Math.round(valorTotal * 100) / 100,
+        desconto: Math.round(desconto * 100) / 100,
+        ehValida: true
     }
 }
 

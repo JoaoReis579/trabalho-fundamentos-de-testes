@@ -51,23 +51,80 @@ const cardapio: IPizza[] = [
 // ==================== FUNÇÃO A IMPLEMENTAR ====================
 
 function calcularPedido(pedido: IPedido): IResultadoPedido {
-    // TODO: Implementar a lógica seguindo as regras de negócio
-    //
-    // Passos sugeridos:
-    // 1. Verificar se o pedido é válido (não vazio, dentro do limite de 5 pizzas)
-    // 2. Calcular o subtotal (somar quantidade × preço de cada pizza + borda se aplicável)
-    // 3. Verificar se o subtotal atinge o pedido mínimo (R$ 20,00)
-    // 4. Contar quantas pizzas G ou GG existem no pedido (soma das quantidades)
-    // 5. Se 2+ pizzas G/GG: desconto = 10% do subtotal
-    // 6. Calcular taxa de entrega: R$ 7,00 ou grátis se subtotal > R$ 80,00
-    // 7. Calcular valor total: subtotal - desconto + taxaEntrega
+    // Primeiro, verificar se o pedido tem itens
+    if (pedido.itens.length === 0) {
+        return {
+            subtotal: 0,
+            desconto: 0,
+            taxaEntrega: 0,
+            valorTotal: 0,
+            ehValido: false
+        }
+    }
+
+    // Calcular total de pizzas
+    let totalPizzas = 0
+    for (const item of pedido.itens) {
+        totalPizzas += item.quantidade
+    }
+    if (totalPizzas > 5) {
+        return {
+            subtotal: 0,
+            desconto: 0,
+            taxaEntrega: 0,
+            valorTotal: 0,
+            ehValido: false
+        }
+    }
+
+    // Calcular subtotal
+    let subtotal = 0
+    let totalGrandes = 0 // G e GG
+    for (const item of pedido.itens) {
+        const pizza = cardapio.find(p => p.id === item.pizzaId)
+        if (!pizza) continue // pizza não encontrada, ignorar?
+        let precoPizza = pizza.preco
+        if (item.bordaRecheada) {
+            precoPizza += 8
+        }
+        subtotal += item.quantidade * precoPizza
+        if (pizza.tamanho === 'G' || pizza.tamanho === 'GG') {
+            totalGrandes += item.quantidade
+        }
+    }
+
+    // Verificar pedido mínimo
+    if (subtotal < 20) {
+        return {
+            subtotal: 0,
+            desconto: 0,
+            taxaEntrega: 0,
+            valorTotal: 0,
+            ehValido: false
+        }
+    }
+
+    // Calcular desconto
+    let desconto = 0
+    if (totalGrandes >= 2) {
+        desconto = subtotal * 0.1
+    }
+
+    // Taxa entrega
+    let taxaEntrega = 7
+    if (subtotal > 80) {
+        taxaEntrega = 0
+    }
+
+    // Valor total
+    const valorTotal = subtotal - desconto + taxaEntrega
 
     return {
-        subtotal: 0,
-        desconto: 0,
-        taxaEntrega: 0,
-        valorTotal: 0,
-        ehValido: false
+        subtotal: Math.round(subtotal * 100) / 100, // arredondar para 2 casas
+        desconto: Math.round(desconto * 100) / 100,
+        taxaEntrega,
+        valorTotal: Math.round(valorTotal * 100) / 100,
+        ehValido: true
     }
 }
 
