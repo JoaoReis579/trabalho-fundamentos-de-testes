@@ -1,4 +1,4 @@
 // aluno.ts
 export const aluno = {
-    nome: 'Seu Nome Completo Aqui',
+    nome: 'João Henriquede Souza Oliveira Reis',
 }
